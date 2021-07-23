@@ -92,7 +92,7 @@ export default function Home() {
             ) : (
               <List
                 dataSource={data}
-                bordered
+                // bordered
                 renderItem={(item) => (
                   <Badge.Ribbon text={item.type}>
                     <List.Item
