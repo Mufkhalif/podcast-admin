@@ -1,7 +1,19 @@
-import { useEffect, useState } from "react";
-import styled from "styled-components";
-import { motion } from "framer-motion";
-import { Layout, Menu, Skeleton } from "antd";
+import React, { useEffect, useState } from "react";
+import {
+  Layout,
+  Menu,
+  Skeleton,
+  List,
+  Avatar,
+  Badge,
+  Popconfirm,
+  message,
+  Drawer,
+  Row,
+  Col,
+  Divider,
+  Image,
+} from "antd";
 import { UserOutlined } from "@ant-design/icons";
 const { SubMenu } = Menu;
 const { Content, Sider } = Layout;
@@ -10,38 +22,54 @@ import moment from "moment";
 import "moment/locale/id";
 moment.locale("id");
 import Header from "../components/header/header";
+import ReactAudioPlayer from "react-audio-player";
+import ModalDetail from "../components/ModalDetail/ModalDetail";
 
-const defaultProfile =
-  "https://images.unsplash.com/photo-1529665253569-6d01c0eaf7b6?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=976&q=80";
+const DescriptionItem = ({ title, content }) => (
+  <div className="site-description-item-profile-wrapper">
+    <p className="site-description-item-profile-p-label">{title}:</p>
+    {content}
+  </div>
+);
 
 export default function Home() {
   const [data, setData] = useState([]);
-
-  useEffect(() => {
-    getData();
-  }, []);
+  const [isMounted, setMounted] = useState(true);
+  const [drawer, setDrawer] = useState({ visible: false, selected: null });
 
   console.log(data);
 
+  useEffect(() => {
+    getData();
+
+    return () => setMounted(false);
+  }, []);
+
   const getData = async () => {
+    setMounted(true);
     await store.collection("popular").onSnapshot(function (snapshot) {
       let firestore = [];
 
       snapshot.forEach(function (childSnapshot) {
-        firestore.push(childSnapshot.data());
+        firestore.push({ ...childSnapshot.data(), id: childSnapshot.id });
       });
 
-      setData(firestore);
+      isMounted && setData(firestore);
     });
+  };
+
+  const onDeleteItem = (id) => {
+    store.collection("popular").doc(id).delete();
+    message.success("Berhasil menghapus podcast");
   };
 
   return (
     <Layout>
       <Header />
-      <Content style={{ padding: "0 50px" }}>
+      <Content style={{ padding: "0 50px", background: "white" }}>
         <Layout
           className="site-layout-background"
-          style={{ padding: "24px 0", height: "100vh" }}
+          style={{ padding: "24px 0", height: "100vh", background: "white" }}
         >
           <Sider className="site-layout-background" width={200}>
             <Menu
@@ -51,143 +79,85 @@ export default function Home() {
               style={{ height: "100%" }}
             >
               <SubMenu key="sub1" icon={<UserOutlined />} title="Category">
-                <Menu.Item key="1">Popular</Menu.Item>
-                <Menu.Item key="2">Recomended</Menu.Item>
+                <Menu.Item key="1">All</Menu.Item>
+                <Menu.Item key="2">Podcast</Menu.Item>
+                <Menu.Item key="3">Demo</Menu.Item>
+                <Menu.Item key="4">Sleep</Menu.Item>
               </SubMenu>
             </Menu>
           </Sider>
-          <Content style={{ padding: "0 24px", minHeight: 280 }}>
+          <Content style={{ padding: "0 24px" }}>
             {data.length == 0 ? (
               <Skeleton />
             ) : (
-              <>
-                {data.map((item, key) => {
-                  return (
-                    <Card {...{ key }}>
-                      <Duration>
-                        {String(item.time / 60).slice(0, 3)} Mins
-                      </Duration>
-                      <Delete
-                        whileHover={{
-                          opacity: 1,
-                          transition: { duration: 0.4 },
-                        }}
-                      >
-                        Delete
-                      </Delete>
-                      <img src={item.cover} alt="wave" />
-                      <ImgProfile>
-                        <img src={defaultProfile} alt="wave" />
-                      </ImgProfile>
-                      <CardTitle>
-                        <p>{item.title}</p>
-                      </CardTitle>
-                      <CardDesc>
-                        Tips to playing skateboard on the ramp
-                      </CardDesc>
-                      <CardInfo>
-                        {moment(new Date(item.date.seconds * 1000)).format(
-                          "Do MMMM YYYY"
-                        )}{" "}
-                        • Waskito
-                      </CardInfo>
-                    </Card>
-                  );
-                })}
-              </>
+              <List
+                dataSource={data}
+                bordered
+                renderItem={(item) => (
+                  <Badge.Ribbon text={item.type}>
+                    <List.Item
+                      key={item.id}
+                      actions={[
+                        <Popconfirm
+                          title="Are you sure to delete this podcast?"
+                          onConfirm={() => onDeleteItem(item.id)}
+                          onCancel={() => console.log("cancel")}
+                          okText="Yes"
+                          cancelText="No"
+                        >
+                          <a href="#">Delete</a>
+                        </Popconfirm>,
+                        <a
+                          href="#"
+                          onClick={() =>
+                            setDrawer({ selected: item, visible: true })
+                          }
+                        >
+                          View
+                        </a>,
+                      ]}
+                    >
+                      <List.Item.Meta
+                        avatar={<Avatar src={item.cover} />}
+                        title={
+                          <a href="https://ant.design/index-cn">{item.title}</a>
+                        }
+                        actions={
+                          <a href="https://ant.design/index-cn">{item.title}</a>
+                        }
+                        description={
+                          <div>
+                            <p>{item.description}</p>
+                            <Badge
+                              status="processing"
+                              text={moment(
+                                new Date(item.date.seconds * 1000)
+                              ).format("Do MMMM YYYY")}
+                            />
+                            <div style={{ width: 100 }} />
+                            <Badge
+                              status="processing"
+                              text={`Duration ${String(item.time / 60).slice(
+                                0,
+                                3
+                              )} Mins`}
+                            />
+                          </div>
+                        }
+                      />
+                    </List.Item>
+                  </Badge.Ribbon>
+                )}
+              />
             )}
           </Content>
+          <ModalDetail
+            item={drawer.selected}
+            visible={drawer.visible}
+            onDismiss={() => setDrawer({ selected: null, visible: false })}
+          />
         </Layout>
       </Content>
     </Layout>
   );
 }
-
-const Card = styled(motion.div)`
-  background-color: #252836;
-  display: inline-block;
-  margin: 8px;
-  max-width: ${960 / 3.2 + "px"};
-  perspective: 1000;
-  position: relative;
-  text-align: left;
-  transition: all 0.3s 0s ease-in;
-  width: ${960 / 3.2 + "px"};
-  z-index: 1;
-  border-radius: 20px;
-  overflow: hidden;
-
-  img {
-    max-width: ${960 / 3.2 + "px"};
-  }
-`;
-
-const CardTitle = styled.div`
-  position: relative;
-  z-index: 0;
-  font-family: poppins;
-  background-color: #252836;
-  padding: 15px;
-  color: #b7b9d2;
-`;
-
-const CardDesc = styled.div`
-  background-color: #252836;
-  padding: 0px 15px 20px;
-  font-family: poppins;
-  color: #fff;
-  font-size: 14px;
-`;
-
-const CardInfo = styled.div`
-  background-color: #252836;
-  padding: 0px 15px 20px;
-  font-family: poppins;
-  color: #808191;
-  font-size: 14px;
-`;
-
-const Duration = styled.div`
-  background: red;
-  position: absolute;
-  left: 10px;
-  top: 10px;
-  padding: 5px 10px;
-  font-family: poppins;
-  font-size: 12px;
-  background: #242730;
-  opacity: 0.5;
-  color: #fff;
-  border-radius: 8px;
-`;
-
-const Delete = styled(motion.div)`
-  cursor: pointer;
-  background: red;
-  position: absolute;
-  right: 10px;
-  top: 10px;
-  padding: 5px 10px;
-  font-family: poppins;
-  font-size: 12px;
-  background: red;
-  opacity: 0.5;
-  color: #fff;
-  border-radius: 8px;
-`;
-
-const ImgProfile = styled.div`
-  width: 50px;
-  height: 50px;
-  right: 10px;
-  top: 120px;
-  position: absolute;
-  border-radius: 30px;
-  overflow: hidden;
-
-  img {
-    width: 100%;
-    height: 100%;
-    margin-left: auto;
-  }
-`;

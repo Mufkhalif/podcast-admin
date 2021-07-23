@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Form,
   Input,
@@ -9,11 +9,12 @@ import {
   Upload,
   message,
 } from "antd";
-const { Content, Footer } = Layout;
+const { Content } = Layout;
 import { UploadOutlined } from "@ant-design/icons";
-import { store, storage } from "../fire/fire";
+import { storage } from "../fire/fire";
 import ReactAudioPlayer from "react-audio-player";
 import Header from "../components/header/header";
+import firebase from "firebase";
 
 export default function AddPodcast() {
   const [componentSize, setComponentSize] = useState("default");
@@ -60,12 +61,9 @@ export default function AddPodcast() {
   const onSubmit = (e) => {
     setLoading(true);
 
-    store.settings({
-      timestampsInSnapshots: true,
-    });
+    const collection = firebase.firestore().collection("popular");
 
-    store
-      .collection("popular")
+    collection
       .add({
         title: e.title,
         album: e.album,
@@ -80,8 +78,6 @@ export default function AddPodcast() {
 
     form.resetFields();
 
-    setDuration(0);
-    setFileUrl("");
     setLoading(false);
 
     message.success("Berhasil manambah data baru");
@@ -90,15 +86,15 @@ export default function AddPodcast() {
   return (
     <Layout>
       <Header />
-      <Content style={{ padding: "0 50px" }}>
+      <Content style={{ padding: "0 50px", background: "white" }}>
         <Layout
           className="site-layout-background"
-          style={{ padding: "24px 0" }}
+          style={{ padding: "24px 0", background: "white" }}
         >
-          <Content style={{ padding: "0 24px", minHeight: 280 }}>
+          <Content style={{ padding: "0 24px", background: "white" }}>
             <Form
               labelCol={{ span: 4 }}
-              wrapperCol={{ span: 14 }}
+              wrapperCol={{ span: 16 }}
               layout="horizontal"
               initialValues={{ size: componentSize }}
               size={"large"}
@@ -152,18 +148,20 @@ export default function AddPodcast() {
               <Form.Item name="description" label="Description">
                 <Input.TextArea />
               </Form.Item>
-              <Form.Item>
-                <Button loading={loading} htmlType="submit">
-                  Button
+              <Form.Item wrapperCol={{ offset: 4, span: 16 }}>
+                <Button
+                  loading={loading}
+                  type="primary"
+                  htmlType="submit"
+                  block
+                >
+                  Submit
                 </Button>
               </Form.Item>
             </Form>
           </Content>
         </Layout>
       </Content>
-      <Footer style={{ textAlign: "center" }}>
-        Ant Design ©2018 Created by Ant UED
-      </Footer>
     </Layout>
   );
 }

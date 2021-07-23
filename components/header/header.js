@@ -1,24 +1,31 @@
-import { Layout, Menu } from "antd";
-const { Header: Default } = Layout;
+import React from "react";
+import { Menu } from "antd";
+import { MailOutlined, AppstoreOutlined } from "@ant-design/icons";
 import Link from "next/link";
-import { useState } from "react";
+export default class Header extends React.Component {
+  state = {
+    current: "mail",
+  };
 
-export default function Header() {
-  const [selected, setSelected] = useState("1");
-  return (
-    <Default className="header">
-      <Menu theme="dark" mode="horizontal" selectedKeys={selected}>
-        <Menu.Item key="1" onClick={() => setSelected("1")}>
-          <Link href="/">
-            <a>Home</a>
-          </Link>
+  handleClick = (e) => {
+    this.setState({ current: e.key });
+  };
+
+  render() {
+    const { current } = this.state;
+    return (
+      <Menu
+        onClick={this.handleClick}
+        selectedKeys={[current]}
+        mode="horizontal"
+      >
+        <Menu.Item key="mail" icon={<MailOutlined />}>
+          <Link href="/">Home</Link>
         </Menu.Item>
-        <Menu.Item key="2" onClick={() => setSelected("2")}>
-          <Link href="/addPodcast">
-            <a>Tambah</a>
-          </Link>
+        <Menu.Item key="app" icon={<AppstoreOutlined />}>
+          <Link href="/addPodcast">Tambah Podcast baru</Link>
         </Menu.Item>
       </Menu>
-    </Default>
-  );
+    );
+  }
 }

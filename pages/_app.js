@@ -1,22 +1,9 @@
 import { createGlobalStyle, ThemeProvider } from "styled-components";
 import "antd/dist/antd.css";
 import "./style.css";
-
-const GlobalStyle = createGlobalStyle`
-  /* body,*,h1,h2,h3 {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    background: #1F1D2B;
-    font-family: poppins;
-  }
-
-  p {
-    margin: 0;
-    padding: 0;
-    background:transparent;
-  } */
-`;
+import { useRouter } from "next/dist/client/router";
+import { useEffect, useState } from "react";
+import { Spin } from "antd";
 
 const theme = {
   colors: {
@@ -25,11 +12,30 @@ const theme = {
 };
 
 export default function App({ Component, pageProps }) {
+  const router = useRouter();
+
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const handleStart = (url) => url !== router.asPath && setLoading(true);
+    const handleComplete = (url) => url === router.asPath && setLoading(false);
+
+    router.events.on("routeChangeStart", handleStart);
+    router.events.on("routeChangeComplete", handleComplete);
+    router.events.on("routeChangeError", handleComplete);
+
+    return () => {
+      router.events.off("routeChangeStart", handleStart);
+      router.events.off("routeChangeComplete", handleComplete);
+      router.events.off("routeChangeError", handleComplete);
+    };
+  });
   return (
     <>
-      <GlobalStyle />
       <ThemeProvider theme={theme}>
-        <Component {...pageProps} />
+        <Spin spinning={loading}>
+          <Component {...pageProps} />
+        </Spin>
       </ThemeProvider>
     </>
   );

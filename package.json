@@ -7,9 +7,11 @@
   },
   "dependencies": {
     "antd": "^4.16.8",
+    "antd-theme": "^0.3.4",
     "firebase": "^8.7.1",
     "framer-motion": "^4.1.17",
     "next": "latest",
+    "nprogress": "^0.2.0",
     "react": "^17.0.2",
     "react-audio-player": "^0.17.0",
     "react-dom": "^17.0.2",
