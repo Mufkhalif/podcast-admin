@@ -124,7 +124,7 @@ export default function AddPodcast() {
               <Form.Item label="File mp3" name="file">
                 <Upload
                   customRequest={customUpload}
-                  onChange={(e) => {
+                  onChange={() => {
                     setFileUrl("");
                     form.setFieldsValue({ linkupload: "" });
                   }}
@@ -148,7 +148,7 @@ export default function AddPodcast() {
               <Form.Item name="description" label="Description">
                 <Input.TextArea />
               </Form.Item>
-              <Form.Item wrapperCol={{ offset: 4, span: 16 }}>
+              <Form.Item name="file" label="-">
                 <Button
                   loading={loading}
                   type="primary"
