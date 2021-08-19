@@ -5,3 +5,48 @@
   padding: 0;
   box-sizing: border-box;
 }
+
+.quiz {
+  padding: 0 30px 20px 30px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.quiz-answer {
+  margin: 0;
+  padding: 10px;
+  background: #f7f7f7;
+  margin-bottom: 5px;
+  cursor: pointer;
+  text-transform: lowercase;
+}
+
+b {
+  text-transform: uppercase;
+}
+
+.quiz-answer:hover {
+  background: #eee;
+}
+
+.quiz-answer::before {
+  content: "";
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  border: 1px solid #ccc;
+  background: #fff;
+  vertical-align: middle;
+  margin-right: 10px;
+}
+
+.quiz-answer.active::before {
+  background-color: #333;
+  border-color: #333;
+}

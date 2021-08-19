@@ -1,7 +1,19 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { store, fire } from "../fire/fire";
 import { uid } from "uid";
 import firebase from "firebase/app";
+import { Layout, Row, Col, Typography, Divider, Button, message } from "antd";
+
+const { Content } = Layout;
+const { Title, Paragraph } = Typography;
+
+const minutes = parseInt(
+  (Math.floor(
+    new Date(1629354906520).getTime() - new Date(1629354666521).getTime()
+  ) /
+    (1000 * 60)) %
+    60
+);
 
 const increaseMinute = (minute = null) => {
   let timeObject = new Date();
@@ -81,10 +93,65 @@ const listUser = [
 ];
 
 export default function TestQuestion() {
+  const [detail, setDetail] = useState(null);
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState(null);
+
+  const [isActive, setIsActive] = useState(false);
+  const [isPaused, setIsPaused] = useState(true);
+  const [time, setTime] = useState(0);
+
+  // console.log(minutes);
+
+  // console.log("currentTime", time);
+  // console.log("````");
+
+  useEffect(() => {
+    const maxTimer = 1 * 60 * 1000; // 1 minutes
+    if (time == maxTimer) {
+      handlePauseResume();
+      message.info("waktu telah habis");
+    } else {
+      console.log("timer", time);
+      console.log("maxTimer", maxTimer);
+    }
+  }, [time]);
+
+  useEffect(() => {
+    let interval = null;
+
+    if (isActive && isPaused === false) {
+      // interval = setInterval(() => setTime((time) => time + 10), 10);
+      interval = setInterval(() => setTime((time) => time + 1000), 1000);
+    } else {
+      clearInterval(interval);
+    }
+    return () => clearInterval(interval);
+  }, [isActive, isPaused]);
+
+  const handleStart = () => {
+    setIsActive(true);
+    setIsPaused(false);
+  };
+
+  const handlePauseResume = () => {
+    setIsPaused(!isPaused);
+  };
+
+  const handleReset = () => {
+    setIsActive(false);
+    setTime(0);
+  };
+
+  // detail && console.log(detail.list_question);
+
+  // console.log("endTime", increaseMinute(4));
+  // console.log("startTime", increaseMinute());
+
   useEffect(() => {
     // addUserToRoom();
-    addData();
-    // getData();
+    // addData();
+    getData();
   }, []);
 
   const addUserToRoom = () => {
@@ -112,7 +179,8 @@ export default function TestQuestion() {
         firestore.push({ ...childSnapshot.data(), id: childSnapshot.id });
       });
 
-      console.log(firestore);
+      // console.log(firestore[0]);
+      setDetail(firestore[0]);
     });
   };
 
@@ -128,8 +196,77 @@ export default function TestQuestion() {
   };
 
   return (
-    <div>
-      <h1>Selamat datang</h1>
-    </div>
+    <Layout style={{ overflow: "hidden" }}>
+      <Content style={{ height: "100vh" }}>
+        <Row gutter={16}>
+          <Col
+            className="gutter-row"
+            span={24}
+            style={{ padding: 30, margin: "0 auto" }}
+          >
+            {detail && (
+              <>
+                <div
+                  style={{ padding: 30, textAlign: "center", margin: "0 auto" }}
+                >
+                  <Title>
+                    {detail.list_question[currentQuestion].question}
+                  </Title>
+                  <Paragraph>Answer List</Paragraph>
+                  <div className="timer">
+                    <span className="digits">
+                      {("0" + Math.floor((time / 60000) % 60)).slice(-2)}:
+                    </span>
+                    <span className="digits">
+                      {("0" + Math.floor((time / 1000) % 60)).slice(-2)}
+                    </span>
+                    {/* <span className="digits">
+                      {("0" + Math.floor((time / 60000) % 60)).slice(-2)}:
+                    </span>
+                    <span className="digits">
+                      {("0" + Math.floor((time / 1000) % 60)).slice(-2)}
+                    </span> */}
+                  </div>
+                </div>
+                <Divider />
+                <div className="quiz">
+                  <ul>
+                    {detail.list_question[currentQuestion].answer.map(
+                      (item, key) => {
+                        return (
+                          <li
+                            key={key}
+                            className={
+                              selectedAnswer == item.id
+                                ? "quiz-answer active"
+                                : "quiz-answer"
+                            }
+                            onClick={() => setSelectedAnswer(item.id)}
+                          >
+                            <b>{item.id}.</b> {item.label}
+                          </li>
+                        );
+                      }
+                    )}
+                  </ul>
+                  <br />
+                  <br />
+                  <Button
+                    type="primary"
+                    block
+                    style={{ maxWidth: 960, margin: "0 auto" }}
+                    onClick={() =>
+                      isActive ? handlePauseResume() : handleStart()
+                    }
+                  >
+                    Primary
+                  </Button>
+                </div>
+              </>
+            )}
+          </Col>
+        </Row>
+      </Content>
+    </Layout>
   );
 }
