@@ -1,7 +1,6 @@
 import { Drawer, Row, Col, Divider, Image, Spin } from "antd";
 import moment from "moment";
 import "moment/locale/id";
-import { useState } from "react";
 moment.locale("id");
 import ReactAudioPlayer from "react-audio-player";
 
@@ -13,10 +12,8 @@ const DescriptionItem = ({ title, content }) => (
 );
 
 export default function ModalDetail({ visible, onDismiss, item }) {
-  const [data, setData] = useState(null);
-
   if (item == null) {
-    return <div></div>;
+    return <div />;
   }
 
   return (
@@ -24,13 +21,10 @@ export default function ModalDetail({ visible, onDismiss, item }) {
       width={640}
       placement="right"
       closable={false}
-      onClose={() => {
-        onDismiss();
-        setData(null);
-      }}
+      onClose={onDismiss}
       visible={visible}
     >
-      <Spin spinning={!data}>
+      <Spin spinning={false}>
         <p
           className="site-description-item-profile-p"
           style={{ marginBottom: 24 }}
@@ -85,9 +79,7 @@ export default function ModalDetail({ visible, onDismiss, item }) {
             <ReactAudioPlayer
               src={item.url}
               controls
-              onLoadedMetadata={(e) => {
-                setData(e);
-              }}
+              onLoadedMetadata={(e) => setData(e)}
             />
           </Col>
         </Row>

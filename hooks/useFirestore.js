@@ -13,7 +13,7 @@ export const useFirestore = () => {
 
   const getData = async () => {
     setMounted(true);
-    await store.collection("popular").onSnapshot(function (snapshot) {
+    store.collection("popular").onSnapshot(function (snapshot) {
       let firestore = [];
 
       snapshot.forEach(function (childSnapshot) {

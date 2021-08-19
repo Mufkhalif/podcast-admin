@@ -17,7 +17,6 @@ import Header from "../components/header/header";
 import firebase from "firebase";
 
 export default function AddPodcast() {
-  const [componentSize, setComponentSize] = useState("default");
   const [fileUrl, setFileUrl] = useState("");
   const [form] = Form.useForm();
   const [duration, setDuration] = useState(0);
@@ -62,7 +61,6 @@ export default function AddPodcast() {
     setLoading(true);
 
     const collection = firebase.firestore().collection("popular");
-
     collection
       .add({
         title: e.title,
@@ -74,13 +72,11 @@ export default function AddPodcast() {
         url: fileUrl,
         description: e.description,
       })
-      .then((e) => console.log("response firebase", e));
-
-    form.resetFields();
-
-    setLoading(false);
-
-    message.success("Berhasil manambah data baru");
+      .then((e) => {
+        form.resetFields();
+        setLoading(false);
+        message.success("Berhasil manambah data baru");
+      });
   };
 
   return (
@@ -96,7 +92,7 @@ export default function AddPodcast() {
               labelCol={{ span: 4 }}
               wrapperCol={{ span: 16 }}
               layout="horizontal"
-              initialValues={{ size: componentSize }}
+              initialValues={{ size: "default" }}
               size={"large"}
               onFinish={onSubmit}
               form={form}

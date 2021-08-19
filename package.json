@@ -11,13 +11,16 @@
     "cheerio": "^1.0.0-rc.10",
     "firebase": "^8.7.1",
     "framer-motion": "^4.1.17",
+    "fs": "^0.0.1-security",
     "next": "latest",
     "nprogress": "^0.2.0",
     "react": "^17.0.2",
     "react-audio-player": "^0.17.0",
     "react-dom": "^17.0.2",
+    "react-icons": "^4.2.0",
     "react-is": "^17.0.2",
-    "styled-components": "^5.2.3"
+    "styled-components": "^5.2.3",
+    "uid": "^2.0.0"
   },
   "devDependencies": {
     "babel-plugin-styled-components": "^1.12.0"
