@@ -33,9 +33,9 @@ export default function App({ Component, pageProps }) {
   return (
     <>
       <ThemeProvider theme={theme}>
-        <Spin spinning={loading}>
-          <Component {...pageProps} />
-        </Spin>
+        {/* <Spin spinning={loading}> */}
+        <Component {...pageProps} />
+        {/* </Spin> */}
       </ThemeProvider>
     </>
   );

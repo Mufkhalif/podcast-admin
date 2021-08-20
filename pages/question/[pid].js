@@ -1,98 +1,16 @@
 import { useEffect, useState } from "react";
-import { store, fire } from "../fire/fire";
+import { store, fire } from "../../src/fire/fire";
 import { uid } from "uid";
 import firebase from "firebase/app";
 import { Layout, Row, Col, Typography, Divider, Button, message } from "antd";
+import { useRouter } from "next/router";
 
 const { Content } = Layout;
 const { Title, Paragraph } = Typography;
 
-const minutes = parseInt(
-  (Math.floor(
-    new Date(1629354906520).getTime() - new Date(1629354666521).getTime()
-  ) /
-    (1000 * 60)) %
-    60
-);
-
-const increaseMinute = (minute = null) => {
-  let timeObject = new Date();
-  return timeObject.setTime(
-    minute
-      ? timeObject.getTime() + minute * 1000 * 60
-      : timeObject.getTime() + 1
-  );
-};
-
-const listQuestion = [
-  {
-    no: 1,
-    id_question: uid(12),
-    type: "inggris",
-    question: "apa bahasa inggrisnya sepeda 2",
-    answer: [
-      {
-        id: "A",
-        label: "CAR",
-      },
-      {
-        id: "B",
-        label: "BIKECYCLE",
-      },
-      {
-        id: "C",
-        label: "BIKECYCLES",
-      },
-    ],
-    correct_answer: "C",
-    start_time: increaseMinute(),
-    end_time: increaseMinute(2),
-    point_correct: 10,
-    point_incorrect: 0,
-  },
-  {
-    no: 2,
-    id_question: uid(12),
-    type: "inggris",
-    question: "apa bahasa inggrisnya apel",
-    answer: [
-      {
-        id: "A",
-        label: "APPLE",
-      },
-      {
-        id: "B",
-        label: "KING FRUIT",
-      },
-      {
-        id: "C",
-        label: "Grappe",
-      },
-    ],
-    correct_answer: "A",
-    start_time: increaseMinute(2),
-    end_time: increaseMinute(4),
-    point_correct: 10,
-    point_incorrect: 0,
-  },
-];
-
-const listUser = [
-  {
-    id_user: uid(5),
-    username: "ahmad",
-  },
-  {
-    id_user: uid(5),
-    username: "juki",
-  },
-  {
-    id_user: uid(5),
-    username: "yayan",
-  },
-];
-
-export default function TestQuestion() {
+export default function Detail() {
+  const router = useRouter();
+  const { pid } = router.query;
   const [detail, setDetail] = useState(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
@@ -101,12 +19,52 @@ export default function TestQuestion() {
   const [isActive, setIsActive] = useState(false);
   const [isPaused, setIsPaused] = useState(true);
   const [time, setTime] = useState(0);
+  const [testQuestion, setTestQuestion] = useState([]);
+
+  testQuestion.length != 0 && console.log(testQuestion[currentQuestion]);
+
+  useEffect(() => {
+    getDetail();
+  }, [pid]);
+
+  const getDetail = () => {
+    const doc = store.collection("room_question").doc(pid);
+    doc.onSnapshot(
+      (docSnapshot) => {
+        const listQuestion = Object.entries(
+          docSnapshot.data() ? docSnapshot.data().list_question_new : []
+        );
+
+        const newListQuestion = [];
+
+        listQuestion.map((item) => {
+          const data = {
+            id: item[0],
+            ...item[1],
+          };
+          newListQuestion.push(data);
+        });
+
+        setTestQuestion(newListQuestion);
+        setDetail(docSnapshot.data());
+      },
+      (err) => setDetail(null)
+    );
+  };
 
   useEffect(() => {
     if (detail) {
-      // const maxTimer = 1 * 60 * 1000; // 1 minutes
       const maxTimer = 0.1 * 60 * 1000; // 12 detik
       const infoQuestion = detail.list_question[currentQuestion];
+
+      const current = testQuestion[currentQuestion].id;
+
+      var usersUpdate = {};
+      usersUpdate[`list_question_new.${current}.timer`] = time;
+
+      store.collection(`room_question`).doc(pid).update(usersUpdate);
+      // .then((e) => console.log(e))
+      // .catch((e) => console.log(e));
 
       if (time == maxTimer) {
         if (listAnswer.length == 0) {
@@ -138,23 +96,25 @@ export default function TestQuestion() {
 
         if (lasIndex != currentQuestion) {
           message.info("waktu telah habis, berpindah jawaban berikutnya");
-          setCurrentQuestion(currentQuestion + 1);
+          setIsPaused(true);
+
+          // setCurrentQuestion(currentQuestion + 1);
         } else {
           message.info("ini adalah soal terakhir dan sudah selesai");
           setCurrentQuestion(currentQuestion);
           setIsPaused(true);
         }
       } else {
-        console.log("aa", infoQuestion.correct_answer);
-        console.log("bb", selectedAnswer);
+        // console.log("aa", infoQuestion.correct_answer);
+        // console.log("bb", selectedAnswer);
       }
     }
   }, [time]);
 
   useEffect(() => {
-    if (listAnswer.length != 0) {
-      console.log(listAnswer);
-    }
+    // if (listAnswer.length != 0) {
+    //   console.log(listAnswer);
+    // }
   }, [listAnswer]);
 
   useEffect(() => {
@@ -189,51 +149,18 @@ export default function TestQuestion() {
     setTime(0);
   };
 
-  useEffect(() => {
-    // addUserToRoom();
-    // addData();
-    getData();
-  }, []);
+  const updateCurrentQuestion = () => {
+    const current = testQuestion[currentQuestion].id;
 
-  const addUserToRoom = () => {
-    const questionRef = store
-      .collection("room_question")
-      .doc("0jA1a4N4TbMyoW0TeTTA");
+    var usersUpdate = {};
+    usersUpdate[`list_question_new.${current}.color`] = true;
 
-    questionRef
-      .update({
-        list_user: firebase.firestore.FieldValue.arrayUnion({
-          id_user: uid(5),
-          username: "yayanss",
-        }),
-      })
-      .then(() => {
-        alert("User baru Berhasil ditambahkan");
-      });
-  };
-
-  const getData = () => {
-    store.collection("room_question").onSnapshot(function (snapshot) {
-      let firestore = [];
-
-      snapshot.forEach(function (childSnapshot) {
-        firestore.push({ ...childSnapshot.data(), id: childSnapshot.id });
-      });
-
-      // console.log(firestore[0]);
-      setDetail(firestore[0]);
-    });
-  };
-
-  const addData = async () => {
-    var questionRef = store.collection("room_question");
-    questionRef
-      .add({
-        nama_room: "Bebas tapi sopan",
-        list_user: listUser,
-        list_question: listQuestion,
-      })
-      .then(() => alert("Berhasil ditambahkan"));
+    store
+      .collection(`room_question`)
+      .doc(pid)
+      .update(usersUpdate)
+      .then((e) => console.log(e))
+      .catch((e) => console.log(e));
   };
 
   return (
@@ -248,7 +175,7 @@ export default function TestQuestion() {
             {detail && (
               <>
                 <div
-                  style={{ padding: 30, textAlign: "center", margin: "0 auto" }}
+                  style={{ padding: 10, textAlign: "center", margin: "0 auto" }}
                 >
                   <Title>
                     {detail.list_question[currentQuestion].question}
@@ -262,6 +189,9 @@ export default function TestQuestion() {
                       {("0" + Math.floor((time / 1000) % 60)).slice(-2)}
                     </span>
                   </div>
+                  {testQuestion.length != 0 &&
+                    testQuestion[currentQuestion].timer}
+                  ;
                 </div>
                 <Divider />
                 <div className="quiz">
@@ -288,8 +218,9 @@ export default function TestQuestion() {
                     type="primary"
                     block
                     style={{ maxWidth: 960, margin: "0 auto" }}
-                    onClick={() =>
-                      isActive ? handlePauseResume() : handleStart()
+                    onClick={
+                      // () => updateCurrentQuestion()
+                      () => (isActive ? handlePauseResume() : handleStart())
                     }
                   >
                     {isActive ? "Konfirmasi" : "Mulai"}
